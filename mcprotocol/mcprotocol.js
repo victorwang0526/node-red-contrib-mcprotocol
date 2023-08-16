@@ -1,4 +1,4 @@
-// MCPROTOCOL - A library for communication to Mitsubishi PLCs over Ethernet from node.js. 
+// MCPROTOCOL - A library for communication to Mitsubishi PLCs over Ethernet from node.js.
 // Currently only FX3U CPUs using FX3U-ENET and FX3U-ENET-ADP modules (Ethernet modules) tested.
 // Please report experiences with others.
 
@@ -24,12 +24,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-// EXTRA WARNING - This is BETA software and as such, be careful, especially when 
+// EXTRA WARNING - This is BETA software and as such, be careful, especially when
 // writing values to programmable controllers.
 //
-// Some actions or errors involving programmable controllers can cause injury or death, 
-// and YOU are indicating that you understand the risks, including the 
-// possibility that the wrong address will be overwritten with the wrong value, 
+// Some actions or errors involving programmable controllers can cause injury or death,
+// and YOU are indicating that you understand the risks, including the
+// possibility that the wrong address will be overwritten with the wrong value,
 // when using this library.  Test thoroughly in a laboratory environment.
 
 var net = require("net");
@@ -118,11 +118,11 @@ MCProtocol.prototype.setDebugLevel = function (level) {
 		case 'NONE':
 			effectiveDebugLevel = -1;
 			break;
-	
+
 		default:
 			effectiveDebugLevel = level;
 	}
-	
+
 }
 
 MCProtocol.prototype.nextSequenceNumber = function () {
@@ -143,6 +143,7 @@ MCProtocol.prototype.setTranslationCB = function (cb) {
 }
 
 MCProtocol.prototype.initiateConnection = function (cParam, callback) {
+	util.log(`MCProtocol.prototype.initiateConnection`);
 	var self = this;
 	if (cParam === undefined) { cParam = { port: 10000, host: '192.168.8.106', ascii: false }; }
 	outputLog('Initiate Called - Connecting to PLC with address and parameters...', "DEBUG");
@@ -157,7 +158,7 @@ MCProtocol.prototype.initiateConnection = function (cParam, callback) {
 	} else {
 		self.isAscii = cParam.ascii;
 	}
-	
+
 	if (typeof (cParam.octalInputOutput) === 'undefined') {
 		self.octalInputOutput = false;
 	} else {
@@ -172,8 +173,8 @@ MCProtocol.prototype.initiateConnection = function (cParam, callback) {
 		if(!MCProtocol.prototype.enumPLCTypes[cParam.plcType]){
 			self.plcType = MCProtocol.prototype.enumPLCTypes.Q.name;
 			outputLog(`plcType '${cParam.plcType}' unknown. Currently supported types are '${MCProtocol.prototype.enumPLCTypes.keys.join("|")}', defaulting to Q series PLC`,"WARN");
-		} 
-		
+		}
+
 		self.plcSeries = MCProtocol.prototype.enumPLCTypes[self.plcType];
 		//not sure how best to handle A/QnA series - not even sure A series can do 3E/4E frames!
 		//for now, default to Q (will be overwritten below if user choses 1E frames)
@@ -299,7 +300,7 @@ MCProtocol.prototype.initiateConnection = function (cParam, callback) {
 
 			//by default, if !allSent and !nonSent, then _some_ were sent!
 			outputLog(`🛢️➡☠️ Something failed to send '${queueItem.fn}' item '${queueItem.arg}'. Queue will be shifted to remove this item.`, "WARN");
-			self.queue.shift();//some sent / some bad - shift the queued item regardless		
+			self.queue.shift();//some sent / some bad - shift the queued item regardless
 
 		} catch (error) {
 			outputLog(`Something went wrong polling the queue: ${error}. Queue will be shifted to remove this item.`, "ERROR");
@@ -334,7 +335,7 @@ MCProtocol.prototype.dropConnection = function () {
 			outputLog(`dropConnection() caused an error error: ${error}`, "ERROR", self.connectionID);
 		}
 	}
-	self.connectionCleanup(); 
+	self.connectionCleanup();
 	self.connected = false;
 }
 
@@ -368,7 +369,7 @@ MCProtocol.prototype.connectNow = function (cParam, suppressCallback) { // TODO 
 
 
 
-		
+
 
 		// self.netClient.on('listening', function () {
 		// 	self.onUDPConnect.apply(self, arguments);
@@ -381,7 +382,7 @@ MCProtocol.prototype.connectNow = function (cParam, suppressCallback) { // TODO 
 			self.netClient.send( buffer, 0, buffer.length, cParam.port, cParam.host, function (err) {
 				if (err) {
 					self.emit('error');//??
-				} 
+				}
 			});
 		}
 
@@ -396,11 +397,11 @@ MCProtocol.prototype.connectNow = function (cParam, suppressCallback) { // TODO 
 
 		self.netClient.on('message', function () {
 			self.onResponse.apply(self, arguments);
-		});  // We need to make sure we don't add this event every time if we call it on data.  
+		});  // We need to make sure we don't add this event every time if we call it on data.
 		self.netClient.on('error', function () {
 			self.readWriteError.apply(self, arguments);
 		});  // Might want to remove the connecterror listener
-		
+
 		self.emit('open');
 		if ((!self.connectCBIssued) && (typeof (self.connectCallback) === "function")) {
 			self.connectCBIssued = true;
@@ -434,13 +435,13 @@ MCProtocol.prototype.connectNow = function (cParam, suppressCallback) { // TODO 
 		outputLog('Attempting to connect to host...', "DEBUG", self.connectionID);
 	}
 
-	
+
 }
 
 MCProtocol.prototype.connectError = function (e) {
 	var self = this;
 	self.emit('error',e);
-	// Note that a TCP connection timeout error will appear here.  An MC connection timeout error is a packet timeout.  
+	// Note that a TCP connection timeout error will appear here.  An MC connection timeout error is a packet timeout.
 	outputLog('We Caught a connect error ' + e.code, "ERROR", self.connectionID);
 	if ((!self.connectCBIssued) && (typeof (self.connectCallback) === "function")) {
 		self.connectCBIssued = true;
@@ -486,11 +487,11 @@ MCProtocol.prototype.onTCPConnect = function () {
 
 	self.netClient.on('data', function () {
 		self.onResponse.apply(self, arguments);
-	});  // We need to make sure we don't add this event every time if we call it on data.  
+	});  // We need to make sure we don't add this event every time if we call it on data.
 	self.netClient.on('error', function () {
 		self.readWriteError.apply(self, arguments);
 	});  // Might want to remove the connecterror listener
-	
+
 	self.emit('open');
 	if ((!self.connectCBIssued) && (typeof (self.connectCallback) === "function")) {
 		self.connectCBIssued = true;
@@ -513,11 +514,11 @@ MCProtocol.prototype.onUDPConnect = function () {
 
 	self.netClient.on('message', function () {
 		self.onResponse.apply(self, arguments);
-	});  // We need to make sure we don't add this event every time if we call it on data.  
+	});  // We need to make sure we don't add this event every time if we call it on data.
 	self.netClient.on('error', function () {
 		self.readWriteError.apply(self, arguments);
 	});  // Might want to remove the connecterror listener
-	
+
 	self.emit('open');
 	if ((!self.connectCBIssued) && (typeof (self.connectCallback) === "function")) {
 		self.connectCBIssued = true;
@@ -582,8 +583,8 @@ function _writeItems(self, arg, value, cb, queuedItem) {
 				plcitem.cb = cb[i];
 			else
 				plcitem.cb = cb;
-			
-			
+
+
 			plcitems.push(plcitem);
 		}
 	}
@@ -716,7 +717,7 @@ MCProtocol.prototype.addItemsNow = function (arg, action, cb) {
 		}
 	}
 
-	// Validity check.  
+	// Validity check.
 	for (i = self.polledReadBlockList.length - 1; i >= 0; i--) {
 		if (self.polledReadBlockList[i] === undefined) {
 			self.polledReadBlockList.splice(i, 1);
@@ -784,7 +785,7 @@ MCProtocol.prototype.readAllItems = function (arg) {
 		return;
 	}
 
-	// Now we check the array of adding and removing things.  Only now is it really safe to do this.  
+	// Now we check the array of adding and removing things.  Only now is it really safe to do this.
 	self.addRemoveArray.forEach(function (element) {
 		outputLog('Adding or Removing ' + util.format(element), "DEBUG", self.connectionID);
 		if (element.action === 'remove') {
@@ -795,14 +796,14 @@ MCProtocol.prototype.readAllItems = function (arg) {
 		}
 	});
 
-	self.addRemoveArray = []; // Clear for next time.  
+	self.addRemoveArray = []; // Clear for next time.
 
 	if (!self.readPacketValid) {
 		self.prepareReadPacket();
 	}
 
 	outputLog("Calling SRP from RAI", "TRACE", self.connectionID);
-	self.sendReadPacket(); // Note this sends the first few read packets depending on parallel connection restrictions.   
+	self.sendReadPacket(); // Note this sends the first few read packets depending on parallel connection restrictions.
 }
 
 MCProtocol.prototype.readItems = function (arg, cb) {
@@ -895,7 +896,7 @@ function _readItems(self, arg, cb, queuedItem) {
 	let pp = self.prepareReadPacket(plcitemsInitialised);
 
 	outputLog("Calling sendReadPacket()", "TRACE", self.connectionID);
-	var sentCount = self.sendReadPacket(); // Note this sends the first few read packets depending on parallel connection restrictions.   
+	var sentCount = self.sendReadPacket(); // Note this sends the first few read packets depending on parallel connection restrictions.
 
 	plcitemsInitialised.map(function (item) {
 		let s = sentCount ? MCProtocol.prototype.enumSendResult.sent : MCProtocol.prototype.enumSendResult.notSent;
@@ -937,7 +938,7 @@ MCProtocol.prototype.clearReadPacketTimeouts = function () {
 MCProtocol.prototype.clearWritePacketTimeouts = function () {
 	var self = this;
 	outputLog('Clearing write PacketTimeouts', "DEBUG", self.connectionID);
-	// Before we initialize the readPacketArray, we need to loop through all of them and clear timeouts.  
+	// Before we initialize the readPacketArray, we need to loop through all of them and clear timeouts.
 	for (i = 0; i < self.writePacketArray.length; i++) {
 		clearTimeout(self.writePacketArray[i].timeout);
 		self.writePacketArray[i].sent = false;
@@ -949,14 +950,14 @@ MCProtocol.prototype.prepareWritePacket = function (itemList) {
 	outputLog("####################  prepareWritePacket() ####################", "TRACE");
 
 	var self = this;
-	var requestList = [];			// The request list consists of the block list, split into chunks readable by PDU.  
+	var requestList = [];			// The request list consists of the block list, split into chunks readable by PDU.
 	var requestNumber = 0, thisBlock = 0, thisRequest = 0;
 	var itemsThisPacket;
 	var numItems;
-	// Sort the items using the sort function, by type and offset.  
+	// Sort the items using the sort function, by type and offset.
 	itemList.sort(itemListSorter);
 
-	// Just exit if there are no items.  
+	// Just exit if there are no items.
 	if (itemList.length == 0) {
 		return undefined;
 	}
@@ -968,21 +969,21 @@ MCProtocol.prototype.prepareWritePacket = function (itemList) {
 	for (i = 0; i < itemList.length; i++) {
 		if (itemList[i].prepareWriteData()) {
 			itemList[i].writeBuffer._instance = itemList[i]._instance;
-			self.globalWriteBlockList.push(itemList[i]); // Remember - by reference.  
+			self.globalWriteBlockList.push(itemList[i]); // Remember - by reference.
 			var bli = self.globalWriteBlockList[self.globalWriteBlockList.length-1];
 			bli.isOptimized = false;
 			bli.itemReference = [];
 			bli.itemReference.push(itemList[i]);
-		} 
+		}
   }
 
-	// Split the blocks into requests, if they're too large.  
+	// Split the blocks into requests, if they're too large.
 	for (i = 0; i < self.globalWriteBlockList.length; i++) {
 		let block = self.globalWriteBlockList[i];
 		var startElement = block.offset;
 		var remainingLength = block.byteLengthWrite;
 		var remainingTotalArrayLength = block.totalArrayLength;
-		var maxByteRequest = block.maxWordLength() * 2; 
+		var maxByteRequest = block.maxWordLength() * 2;
 		var lengthOffset = 0;
 		block.partsBufferized = 0;
 
@@ -994,8 +995,8 @@ MCProtocol.prototype.prepareWritePacket = function (itemList) {
 
 		// If we need to spread the sending/receiving over multiple packets...
 		for (j = 0; j < block.parts; j++) {
-			// create a request for a globalWriteBlockList. 
-			requestList[thisRequest] = block.clone(); 
+			// create a request for a globalWriteBlockList.
+			requestList[thisRequest] = block.clone();
 			let reqItem = requestList[thisRequest];
 			reqItem._instance = "block clone (request item)";
 			reqItem.part = j+1;
@@ -1021,9 +1022,9 @@ MCProtocol.prototype.prepareWritePacket = function (itemList) {
 				//reqItem.datatype = 'BYTE';//why???
 				//reqItem.dtypelen = 1;//why???
 				if (reqItem.bitNative) {
-					reqItem.arrayLength = reqItem.totalArrayLength;//globalReadBlockList[thisBlock].byteLength;		
+					reqItem.arrayLength = reqItem.totalArrayLength;//globalReadBlockList[thisBlock].byteLength;
 				} else {
-					reqItem.arrayLength = reqItem.byteLengthWrite / 2;//globalReadBlockList[thisBlock].byteLength;		
+					reqItem.arrayLength = reqItem.byteLengthWrite / 2;//globalReadBlockList[thisBlock].byteLength;
 				}
 			}
 			//generate the comm buffer for this part (with new address offset & length etc)
@@ -1052,10 +1053,10 @@ MCProtocol.prototype.prepareWritePacket = function (itemList) {
 		numItems = 0;
 		self.writePacketArray.push(new PLCPacket());
 		var thisPacketNumber = self.writePacketArray.length - 1;
-		self.writePacketArray[thisPacketNumber].itemList = [];  // Initialize as array.  
+		self.writePacketArray[thisPacketNumber].itemList = [];  // Initialize as array.
 		for (var i = requestNumber; i < requestList.length; i++) {
 			if (numItems == 1) {
-				break;  // Used to break when packet was full.  Now break when we can't fit this packet in here.  
+				break;  // Used to break when packet was full.  Now break when we can't fit this packet in here.
 			}
 			requestNumber++;
 			numItems++;
@@ -1064,7 +1065,7 @@ MCProtocol.prototype.prepareWritePacket = function (itemList) {
 		}
 	}
 	outputLog("writePacketArray Length = " + self.writePacketArray.length, "DEBUG");
-	return thisRequest; //return count of prepared requests.  
+	return thisRequest; //return count of prepared requests.
 }
 
 MCProtocol.prototype.prepareReadPacket = function (items) {
@@ -1074,22 +1075,22 @@ MCProtocol.prototype.prepareReadPacket = function (items) {
 
 	var self = this;
 	var itemList = items || self.polledReadBlockList;				// The items are the actual items requested by the user
-	var requestList = [];						// The request list consists of the block list, split into chunks readable by PDU.  	
+	var requestList = [];						// The request list consists of the block list, split into chunks readable by PDU.
 	var startOfSlice, endOfSlice, oldEndCoil, demandEndCoil;
 	let blocklist = []; //self.globalReadBlockList
 
-	// Validity check.  
+	// Validity check.
 	for (i = itemList.length - 1; i >= 0; i--) {
 		if (itemList[i] === undefined) {
 			itemList.splice(i, 1);
 			outputLog("Dropping an undefined request item.", "WARN", self.connectionID);
 		}
 	}
-	
-	// Sort the items using the sort function, by type and offset.  
+
+	// Sort the items using the sort function, by type and offset.
 	itemList.sort(itemListSorter);
 
-	// Just exit if there are no items.  
+	// Just exit if there are no items.
 	if (itemList.length == 0) {
 		return undefined;
 	}
@@ -1142,7 +1143,7 @@ MCProtocol.prototype.prepareReadPacket = function (items) {
 	}
 	*/
 
-	// ...because you have to start your optimization somewhere.  
+	// ...because you have to start your optimization somewhere.
 	blocklist[0] = itemList[0];
 	blocklist[0].itemReference = [];
 	blocklist[0].itemReference.push(itemList[0]);
@@ -1152,30 +1153,30 @@ MCProtocol.prototype.prepareReadPacket = function (items) {
 
 	// Optimize the items into blocks
 	for (i = 1; i < itemList.length; i++) {
-		maxByteRequest = itemList[i].maxWordLength() * 2; 
+		maxByteRequest = itemList[i].maxWordLength() * 2;
 
 		if ((itemList[i].areaMCCode !== blocklist[thisBlock].areaMCCode) ||   	// Can't optimize between areas
-			(!self.isOptimizableArea(itemList[i].areaMCCode)) || 					// May as well try to optimize everything.  
+			(!self.isOptimizableArea(itemList[i].areaMCCode)) || 					// May as well try to optimize everything.
 			((itemList[i].offset - blocklist[thisBlock].offset + itemList[i].byteLength) > maxByteRequest) ||      	// If this request puts us over our max byte length, create a new block for consistency reasons.
 			((itemList[i].offset - (blocklist[thisBlock].offset + blocklist[thisBlock].byteLength) > self.maxGap) && !itemList[i].bitNative) ||
 			((itemList[i].offset - (blocklist[thisBlock].offset + blocklist[thisBlock].byteLength) > self.maxGap * 8) && itemList[i].bitNative)) {		// If our gap is large, create a new block.
-			// At this point we give up and create a new block.  
+			// At this point we give up and create a new block.
 			thisBlock = thisBlock + 1;
-			blocklist[thisBlock] = itemList[i]; // By reference.  
-			//				itemList[i].block = thisBlock; // Don't need to do this.  
+			blocklist[thisBlock] = itemList[i]; // By reference.
+			//				itemList[i].block = thisBlock; // Don't need to do this.
 			blocklist[thisBlock].isOptimized = false;
 			blocklist[thisBlock].itemReference = [];
 			blocklist[thisBlock].itemReference.push(itemList[i]);
 			//			outputLog("Not optimizing.");
 		} else {
 			outputLog("Performing optimization of item " + itemList[i].addr + " with " + blocklist[thisBlock].addr, "DEBUG");
-			// This next line checks the maximum.  
-			// Think of this situation - we have a large request of 40 bytes starting at byte 10.  
+			// This next line checks the maximum.
+			// Think of this situation - we have a large request of 40 bytes starting at byte 10.
 			//	Then someone else wants one byte starting at byte 12.  The block length doesn't change.
 			//
-			// But if we had 40 bytes starting at byte 10 (which gives us byte 10-49) and we want byte 50, our byte length is 50-10 + 1 = 41.  
+			// But if we had 40 bytes starting at byte 10 (which gives us byte 10-49) and we want byte 50, our byte length is 50-10 + 1 = 41.
 
-			if (itemList[i].bitNative) { // Coils and inputs must be special-cased 
+			if (itemList[i].bitNative) { // Coils and inputs must be special-cased
 				blocklist[thisBlock].byteLength =
 					Math.max(
 						blocklist[thisBlock].byteLength,
@@ -1194,7 +1195,7 @@ MCProtocol.prototype.prepareReadPacket = function (items) {
 			outputLog("Optimized byte length is now " + blocklist[thisBlock].byteLength, "DEBUG");
 
 			// Point the buffers (byte and quality) to a sliced version of the optimized block.  This is by reference (same area of memory)
-			if (itemList[i].bitNative) {  // Again a special case.  
+			if (itemList[i].bitNative) {  // Again a special case.
 				startOfSlice = (itemList[i].requestOffset - blocklist[thisBlock].requestOffset) / 8; // NO, NO, NO - not the dtype length - start of slice varies with register width.  itemList[i].multidtypelen;
 			} else {
 				startOfSlice = (itemList[i].requestOffset - blocklist[thisBlock].requestOffset) * 2; // NO, NO, NO - not the dtype length - start of slice varies with register width.  itemList[i].multidtypelen;
@@ -1204,11 +1205,11 @@ MCProtocol.prototype.prepareReadPacket = function (items) {
 			itemList[i].byteBuffer = blocklist[thisBlock].byteBuffer.slice(startOfSlice, endOfSlice);
 			itemList[i].qualityBuffer = blocklist[thisBlock].qualityBuffer.slice(startOfSlice, endOfSlice);
 
-			// For now, change the request type here, and fill in some other things.  
+			// For now, change the request type here, and fill in some other things.
 
 			// I am not sure we want to do these next two steps.
 			// It seems like things get screwed up when we do this.
-			// Since globalReadBlockList[thisBlock] exists already at this point, and our buffer is already set, let's not do this now.   
+			// Since globalReadBlockList[thisBlock] exists already at this point, and our buffer is already set, let's not do this now.
 			// globalReadBlockList[thisBlock].datatype = 'BYTE';
 			// globalReadBlockList[thisBlock].dtypelen = 1;
 			blocklist[thisBlock].isOptimized = true;
@@ -1218,12 +1219,12 @@ MCProtocol.prototype.prepareReadPacket = function (items) {
 
 	var thisRequest = 0;
 
-	// Split the blocks into requests, if they're too large.  
+	// Split the blocks into requests, if they're too large.
 	for (i = 0; i < blocklist.length; i++) {
-		// Always create a request for a globalReadBlockList. 
+		// Always create a request for a globalReadBlockList.
 		let blockListItem = blocklist[i];
 		// How many parts?
-		maxByteRequest = blockListItem.maxWordLength() * 2; 
+		maxByteRequest = blockListItem.maxWordLength() * 2;
 		blockListItem.parts = Math.ceil(blockListItem.byteLength / maxByteRequest);
 		var startElement = blockListItem.requestOffset; // try to ignore the offset
 		var remainingLength = blockListItem.byteLength;
@@ -1232,10 +1233,10 @@ MCProtocol.prototype.prepareReadPacket = function (items) {
 		//initialise the buffers
 		blockListItem.byteBuffer.fill(0)// = new Buffer(blockListItem.byteLength);
 		blockListItem.qualityBuffer.fill(0)// = new Buffer(blockListItem.byteLength);
-		
+
 		blockListItem.requestReference = [];
-		
-		// If we need to spread the sending/receiving over multiple packets... 
+
+		// If we need to spread the sending/receiving over multiple packets...
 		for (j = 0; j < blockListItem.parts; j++) {
 			requestList[thisRequest] = blockListItem.clone();
 			let thisReqItem = requestList[thisRequest];
@@ -1251,28 +1252,28 @@ MCProtocol.prototype.prepareReadPacket = function (items) {
 			}
 			thisReqItem.byteLengthWithFill = thisReqItem.byteLength;
 			if (thisReqItem.byteLengthWithFill % 2) { thisReqItem.byteLengthWithFill += 1; };
-			// Just for now...  I am not sure if we really want to do this in this case.  
+			// Just for now...  I am not sure if we really want to do this in this case.
 			if (blockListItem.parts > 1) {
 				thisReqItem.datatype = 'BYTE';
 				thisReqItem.dtypelen = 1;
 				if (thisReqItem.bitNative) {
-					thisReqItem.arrayLength = thisReqItem.totalArrayLength;//globalReadBlockList[thisBlock].byteLength;		
+					thisReqItem.arrayLength = thisReqItem.totalArrayLength;//globalReadBlockList[thisBlock].byteLength;
 				} else {
-					thisReqItem.arrayLength = thisReqItem.byteLength / 2;//globalReadBlockList[thisBlock].byteLength;		
+					thisReqItem.arrayLength = thisReqItem.byteLength / 2;//globalReadBlockList[thisBlock].byteLength;
 				}
 			}
 			outputLog(`Created block part (reqItem) ${j+1} of ${blockListItem.parts} for request '${blockListItem.useraddr}', .offset (device number) == ${thisReqItem.offset}, byteLength==${thisReqItem.byteLength}`, "DEBUG");
 
 			remainingLength -= maxByteRequest;
 			if (blockListItem.bitNative) {
-				//				startElement += maxByteRequest/thisReqItem.multidtypelen;  
+				//				startElement += maxByteRequest/thisReqItem.multidtypelen;
 				startElement += maxByteRequest * 8;
 			} else {
 				startElement += maxByteRequest / 2;
 			}
 			thisRequest++;
 		}
-		
+
 
 	}
 
@@ -1293,7 +1294,7 @@ MCProtocol.prototype.prepareReadPacket = function (items) {
 		packetArray.push(new PLCPacket());
 		var thisPacketNumber = packetArray.length - 1;
 		//packetArray[thisPacketNumber].seqNum = self.nextSequenceNumber();
-		packetArray[thisPacketNumber].itemList = [];  // Initialize as array.  
+		packetArray[thisPacketNumber].itemList = [];  // Initialize as array.
 
 		for (var i = requestNumber; i < requestList.length; i++) {
 			if (numItems >= 1) {
@@ -1316,7 +1317,7 @@ MCProtocol.prototype.prepareReadPacket = function (items) {
 
 	let fntimetaken = process.hrtime(fnstarttime);
 	outputLog(`function '${getFuncName()}()' - time taken ${fntimetaken[0] * 1e9 + fntimetaken[1]} nanoseconds ⌛`, "TRACE");
-	/* DISABLED cache for now 
+	/* DISABLED cache for now
 	outputLog("------------------  that took aaaaaggggeeeeessss adding packetCacheKey : " + packetCacheKey + ' to the cache for optimisation --------------- 🏺🏺🏺', 3, self.connectionID);
 	self.readPacketArrayCache.push(rpa);
 	*/
@@ -1327,7 +1328,7 @@ MCProtocol.prototype.prepareReadPacket = function (items) {
 
 function clearPacketTimeouts(packetArray) {
 	outputLog('Clearing read PacketTimeouts', 3);
-	// Before we initialize the readPacketArray, we need to loop through all of them and clear timeouts.  
+	// Before we initialize the readPacketArray, we need to loop through all of them and clear timeouts.
 	for (i = 0; i < packetArray.length; i++) {
 		clearTimeout(packetArray[i].timeout);
 		packetArray[i].sent = false;
@@ -1356,12 +1357,12 @@ MCProtocol.prototype.sendReadPacket = function (arg) {
 		curLength = 0;
 		routerLength = 0;
 
-		// The FOR loop is left in here for now, but really we are only doing one request per packet for now.  
+		// The FOR loop is left in here for now, but really we are only doing one request per packet for now.
 		for (j = 0; j < readPacket.itemList.length; j++) {
 			var item = readPacket.itemList[j];
 			item.sendTime = Date.now();
 			readPacket.seqNum = self.nextSequenceNumber();// readPacket.seqNum;
-			item.toBuffer(self.isAscii, self.frame, self.plcType, readPacket.seqNum, self.network, self.PCStation, self.PLCStation, self.PLCModuleNo);	
+			item.toBuffer(self.isAscii, self.frame, self.plcType, readPacket.seqNum, self.network, self.PCStation, self.PLCStation, self.PLCModuleNo);
 			returnedBfr = item.buffer.data;
 			returnedBfr.copy(self.readReq, curLength);
 			curLength += returnedBfr.length;
@@ -1402,7 +1403,7 @@ MCProtocol.prototype.sendReadPacket = function (arg) {
 			//			outputLog('Somehow got into read block without proper connectionState of 4.  Disconnect.');
 			//			connectionReset();
 			//			setTimeout(connectNow, 2000, connectionParams);
-			// Note we aren't incrementing maxParallel so we are actually going to time out on all our packets all at once.    
+			// Note we aren't incrementing maxParallel so we are actually going to time out on all our packets all at once.
 			readPacket.sent = true;
 			readPacket.rcvd = false;
 			readPacket.timeoutError = true;
@@ -1410,7 +1411,7 @@ MCProtocol.prototype.sendReadPacket = function (arg) {
 				// Prevent duplicates
 				outputLog(`Not Sending Read Packet (seqNum==${readPacket.seqNum}) because we are not connected - connection state is ${self.connectionState}`, 0, self.connectionID);
 			}
-			// This is essentially an instantTimeout.  
+			// This is essentially an instantTimeout.
 			if (self.connectionState == 0) {
 				flagReconnect = true;
 			}
@@ -1485,16 +1486,16 @@ MCProtocol.prototype.sendWritePacket = function () {
 			self.parallelJobsNow += 1;
 			outputLog('Sent Write Packet With Sequence Number ' + writePacket.seqNum, "DEBUG", self.connectionID);
 		} else {
-			// This is essentially an instantTimeout.  
+			// This is essentially an instantTimeout.
 			writePacket.sent = true;
 			writePacket.rcvd = false;
 			writePacket.timeoutError = true;
 
 			// Without the scopePlaceholder, this doesn't work.   writePacketArray[i] becomes undefined.
-			// The reason is that the value i is part of a closure and when seen "nextTick" has the same value 
-			// it would have just after the FOR loop is done.  
+			// The reason is that the value i is part of a closure and when seen "nextTick" has the same value
+			// it would have just after the FOR loop is done.
 			// (The FOR statement will increment it to beyond the array, then exit after the condition fails)
-			// scopePlaceholder works as the array is de-referenced NOW, not "nextTick".  
+			// scopePlaceholder works as the array is de-referenced NOW, not "nextTick".
 			var scopePlaceholder = writePacket.seqNum;
 			process.nextTick(function () {
 				self.packetTimeout("write", scopePlaceholder);
@@ -1515,7 +1516,7 @@ MCProtocol.prototype.sendWritePacket = function () {
 
 MCProtocol.prototype.isOptimizableArea = function (area) {
 	var self = this;
-	// For MC protocol always say yes.  
+	// For MC protocol always say yes.
 	if (self.doNotOptimize) { return false; } // Are we skipping all optimization due to user request?
 
 	return true;
@@ -1524,7 +1525,7 @@ MCProtocol.prototype.isOptimizableArea = function (area) {
 MCProtocol.prototype.onResponse = function (rawdata, rinfo) {
 	var self = this;
 	var isReadResponse, isWriteResponse, data;
-	// Packet Validity Check.  
+	// Packet Validity Check.
 
 	if (!self.isAscii) {
 		data = rawdata;
@@ -1553,8 +1554,8 @@ MCProtocol.prototype.onResponse = function (rawdata, rinfo) {
 	outputLog(data, "DEBUG");
 
 	//1E / 3E frame...
-	// On a lot of other industrial protocols the sequence number is coded as part of the 
-	// packet and read in the response which is used as a check.	
+	// On a lot of other industrial protocols the sequence number is coded as part of the
+	// packet and read in the response which is used as a check.
 	// On the MC protocol, we can't do that - so we need to either give up on tracking sequence
 	// numbers (this is what we've done) or fake sequence numbers (adds code complexity for no perceived benefit)
 	let _isReading = self.isReading();
@@ -1575,7 +1576,7 @@ MCProtocol.prototype.onResponse = function (rawdata, rinfo) {
 	if(rh.valid == false && rh.lastError) {
 		outputLog(rh.lastError + " - dropping packet", "ERROR");
 		outputLog(rh,"TRACE");
-		return null;		
+		return null;
 	}
 	if(rh.seqNum != self.lastPacketSent.seqNum){
 		outputLog(`Unexpected response.  Expected sequence number ${self.lastPacketSent.seqNum}, received ${rh.seqNum} - dropping packet`, "WARN");
@@ -1630,7 +1631,7 @@ MCProtocol.prototype.writeResponse = function (data, decodedHeader) {
 		}
 	}
 
-	// Make a note of the time it took the PLC to process the request.  
+	// Make a note of the time it took the PLC to process the request.
 	self.writePacketArray[sentPacketNum].reqTime = process.hrtime(self.writePacketArray[sentPacketNum].reqTime);
 	let wtms = (self.writePacketArray[sentPacketNum].reqTime[0] * 1000) + Math.round(self.writePacketArray[sentPacketNum].reqTime[1] * 10 / 1e6) / 10;
 	outputLog('Write Time is ' + wtms + 'ms.', "TRACE");
@@ -1654,7 +1655,7 @@ MCProtocol.prototype.writeResponse = function (data, decodedHeader) {
 		let results = {};//items to send to callback
 
 		for (i = 0; i < self.globalWriteBlockList.length; i++) {
-			// Post-process the write code and apply the quality.  
+			// Post-process the write code and apply the quality.
 			// Loop through the global block list...
 			let theItem = self.globalWriteBlockList[i];
 			writePostProcess(theItem);
@@ -1663,7 +1664,7 @@ MCProtocol.prototype.writeResponse = function (data, decodedHeader) {
 			}
 		}
 		for (i = 0; i < self.globalWriteBlockList.length; i++) {
-			// Post-Post-process the write code, colate results and send callbacks  
+			// Post-Post-process the write code, colate results and send callbacks
 			// Loop through the global block list...
 			let theItem = self.globalWriteBlockList[i];
 			var ttms = theItem.recvTime - theItem.initTime;
@@ -1693,7 +1694,7 @@ MCProtocol.prototype.writeResponse = function (data, decodedHeader) {
 
 		self.processQueueASAP();
 	}
-	
+
 }
 
 
@@ -1706,7 +1707,7 @@ MCProtocol.prototype.readResponse = function (data, decodedHeader) {
 	//     Data starts at [11]
 	//error information : Access route, Command, Subcommand.
 	var self = this;
-	var anyBadQualities, dataPointer, rcvdPacketNum;  // For non-routed packets we start at byte 21 of the packet.  If we do routing it will be more than this.  
+	var anyBadQualities, dataPointer, rcvdPacketNum;  // For non-routed packets we start at byte 21 of the packet.  If we do routing it will be more than this.
 	let results = {};//items to send to callback
 
 	outputLog("ReadResponse called", "DEBUG", self.connectionID);
@@ -1720,7 +1721,7 @@ MCProtocol.prototype.readResponse = function (data, decodedHeader) {
 
 	if (typeof (rcvdPacketNum) === 'undefined') {
 		outputLog('WARNING: Received a read response packet that was not marked as sent', "WARN", self.connectionID);
-		//TODO - fix the network unreachable error that made us do this		
+		//TODO - fix the network unreachable error that made us do this
 		return null;
 	}
 
@@ -1735,16 +1736,16 @@ MCProtocol.prototype.readResponse = function (data, decodedHeader) {
 		if (!dataPointer && typeof (data) !== "undefined") {
 			// Don't bother showing this message on timeout.
 			outputLog('Received a ZERO RESPONSE Processing Read Packet due to unrecoverable packet error', "ERROR");
-			//			break;  // We rely on this for our timeout now.  
+			//			break;  // We rely on this for our timeout now.
 		}
 	}
 
-	// Make a note of the time it took the PLC to process the request.  
+	// Make a note of the time it took the PLC to process the request.
 	self.readPacketArray[rcvdPacketNum].reqTime = process.hrtime(self.readPacketArray[rcvdPacketNum].reqTime);
 	let rtms = (self.readPacketArray[rcvdPacketNum].reqTime[0] * 1000) + Math.round(self.readPacketArray[rcvdPacketNum].reqTime[1] * 10 / 1e6) / 10;
 	outputLog('Read Time is ' + rtms + 'ms.', "DEBUG", self.connectionID);
 
-	// Do the bookkeeping for packet and timeout.  
+	// Do the bookkeeping for packet and timeout.
 	if (!self.readPacketArray[rcvdPacketNum].rcvd) {
 		self.readPacketArray[rcvdPacketNum].rcvd = true;
 		self.parallelJobsNow--;
@@ -1752,8 +1753,8 @@ MCProtocol.prototype.readResponse = function (data, decodedHeader) {
 	}
 	clearTimeout(self.readPacketArray[rcvdPacketNum].timeout);
 
-	if (self.readPacketArray.every(doneSending)) {  // if sendReadPacket returns true we're all done.  
-		// Mark our packets unread for next time.  
+	if (self.readPacketArray.every(doneSending)) {  // if sendReadPacket returns true we're all done.
+		// Mark our packets unread for next time.
 		outputLog('Every packet done sending', "DEBUG", self.connectionID);
 		for (i = 0; i < self.readPacketArray.length; i++) {
 			self.readPacketArray[i].sent = false;
@@ -1766,9 +1767,9 @@ MCProtocol.prototype.readResponse = function (data, decodedHeader) {
 		for (var i = 0; i < self.globalReadBlockList.length; i++) {
 			var lengthOffset = 0;
 			let block = self.globalReadBlockList[i];
-			// For each block, we loop through all the requests.  Remember, for all but large arrays, there will only be one.  
+			// For each block, we loop through all the requests.  Remember, for all but large arrays, there will only be one.
 			for (var j = 0; j < block.requestReference.length; j++) {
-				// Now that our request is complete, we reassemble the BLOCK byte buffer as a 
+				// Now that our request is complete, we reassemble the BLOCK byte buffer as a
 				//copy of each and every request byte buffer.
 				let reqRef = block.requestReference[j];
 				reqRef.byteBuffer.copy(block.byteBuffer, lengthOffset, 0, reqRef.byteLength);
@@ -1776,7 +1777,7 @@ MCProtocol.prototype.readResponse = function (data, decodedHeader) {
 				lengthOffset += reqRef.byteLength;
 			}
 
-			// For each ITEM reference pointed to by the block, we process the item. 
+			// For each ITEM reference pointed to by the block, we process the item.
 			for (var k = 0; k < block.itemReference.length; k++) {
 				let itemRef = block.itemReference[k];
 				processMCReadItem(itemRef, self.isAscii, self.frame);
@@ -1808,7 +1809,7 @@ MCProtocol.prototype.readResponse = function (data, decodedHeader) {
 		if (typeof (self.readDoneCallback) === 'function') {
 			outputLog("Now calling back readDoneCallback(). Sending the following values...", "DEBUG", self.connectionID);
 			outputLog(util.format(results), "DEBUG");
-			
+
 			self.readDoneCallback(anyBadQualities, results);
 		}
 
@@ -1839,12 +1840,12 @@ MCProtocol.prototype.connectionReset = function () {
 	self.resetPending = true;
 	outputLog('ConnectionReset is happening', "DEBUG");
 	// The problem is that if we are interrupted before a read can be completed, say we get a bogus packet - we'll never recover.
-	if (!self.isReading() && typeof (self.resetTimeout) === 'undefined') { // For now - ignore writes.  && !isWriting()) {	
+	if (!self.isReading() && typeof (self.resetTimeout) === 'undefined') { // For now - ignore writes.  && !isWriting()) {
 		self.resetTimeout = setTimeout(function () {
 			self.resetNow.apply(self, arguments);
 		}, 1500);
 	}
-	// For now we wait until read() is called again to re-connect.  
+	// For now we wait until read() is called again to re-connect.
 }
 
 MCProtocol.prototype.resetNow = function () {
@@ -1860,7 +1861,7 @@ MCProtocol.prototype.resetNow = function () {
 	self.connectionState = 0;
 	self.resetPending = false;
 	// In some cases, we can have a timeout scheduled for a reset, but we don't want to call it again in that case.
-	// We only want to call a reset just as we are returning values.  Otherwise, we will get asked to read // more values and we will "break our promise" to always return something when asked. 
+	// We only want to call a reset just as we are returning values.  Otherwise, we will get asked to read // more values and we will "break our promise" to always return something when asked.
 	if (typeof (self.resetTimeout) !== 'undefined') {
 		clearTimeout(self.resetTimeout);
 		self.resetTimeout = undefined;
@@ -1882,8 +1883,8 @@ MCProtocol.prototype.connectionCleanup = function () {
 	}
 	clearTimeout(self.connectTimeout);
 	clearTimeout(self.PDUTimeout);
-	self.clearReadPacketTimeouts();  // Note this clears timeouts.  
-	self.clearWritePacketTimeouts();  // Note this clears timeouts.   
+	self.clearReadPacketTimeouts();  // Note this clears timeouts.
+	self.clearWritePacketTimeouts();  // Note this clears timeouts.
 }
 
 function outputLog(txt, debugLevel, id) {
@@ -1898,7 +1899,7 @@ function outputLog(txt, debugLevel, id) {
 	}
 	var t = process.hrtime();
 	var s = new Date().toISOString() + " " + Math.round(t[1] / 1000) + " ";
-	
+
 	let level = 3;//debug by default
 	if(typeof debugLevel == "number"){
 		level = debugLevel;
@@ -1935,8 +1936,8 @@ function doneSending(element) {
 }
 
 function processMBPacket(decodedHeader, theData, theItem, thePointer, frame) {
-	
-	// Create a new buffer for the quality.  
+
+	// Create a new buffer for the quality.
 	theItem.qualityBuffer = Buffer.alloc(theItem.byteLength);
 	theItem.qualityBuffer.fill(MCProtocol.prototype.enumOPCQuality.unknown.value);
 	//reset some flags...#
@@ -1951,10 +1952,10 @@ function processMBPacket(decodedHeader, theData, theItem, thePointer, frame) {
 		else
 			theItem.lastError = "Response Header is not valid";
 		outputLog(theItem.lastError, "WARN");  // Can't log more info here as we dont have "self" info
-		return 0;   			// Hard to increment the pointer so we call it a malformed packet and we're done.      
+		return 0;   			// Hard to increment the pointer so we call it a malformed packet and we're done.
 	}
 
-	// There is no reported data length to check here - 
+	// There is no reported data length to check here -
 	// reportedDataLength = theData[9];
 	if (theItem.bitNative && theItem.writeOperation)
 		expectedLength = Math.ceil(theItem.arrayLength / 2);//2 bits are return per byte (pg91)
@@ -1970,7 +1971,7 @@ function processMBPacket(decodedHeader, theData, theItem, thePointer, frame) {
 		return 1;
 	}
 
-	// Looks good so far.  
+	// Looks good so far.
 	// set the data pointer to start of data.
 	thePointer = decodedHeader.dataStart;
 
@@ -1983,7 +1984,7 @@ function processMBPacket(decodedHeader, theData, theItem, thePointer, frame) {
 	outputLog(theItem.byteBuffer, "TRACE");
 
 	outputLog('Marking quality as good.', "TRACE");
-	theItem.qualityBuffer.fill(MCProtocol.prototype.enumOPCQuality.good.value);  //  
+	theItem.qualityBuffer.fill(MCProtocol.prototype.enumOPCQuality.good.value);  //
 
 	return -1; //thePointer;
 }
@@ -1995,7 +1996,7 @@ function processMBPacket(decodedHeader, theData, theItem, thePointer, frame) {
  * Decodes a reply from PLC. NOTE: Different properties will be set depeding on the frame used.  e.g. `.seq` is only valid for 4E frames.
  *
  * @param {*} mcp - this MCProtocol object (required for access to frame)
- * @param {*} theData - the data as it comes direct from the PLC 
+ * @param {*} theData - the data as it comes direct from the PLC
  * @returns an object containing the decoded header.  check `.valid` before using values
  */
 function decodeResponseHeader(mcp, theData){
@@ -2006,18 +2007,18 @@ function decodeResponseHeader(mcp, theData){
 	// End Code is 1 byte. Value should be 0 for normal
 	// Response Data.  Non for write op, Data for Read op, Abnormal Code if End Code != 0
 
-	//5.2 3E,4E Message Format pg 41 
+	//5.2 3E,4E Message Format pg 41
 	// Subheader, Access route, Response data length, End code, Response data
 
 	// Subheader
-	//  4E 6byes 0x0054 + serial number + 0x0000 (6b) 1234H (5400 = 4E frame, 3412=1234h, 0000 fixed) 
-	//  3E 2bytes 5000  
+	//  4E 6byes 0x0054 + serial number + 0x0000 (6b) 1234H (5400 = 4E frame, 3412=1234h, 0000 fixed)
+	//  3E 2bytes 5000
 	// Access route
 	// 5bytes
 	//* (Byte) Network No ,  Specify the network No. of an access target.
 	//* (Byte) PC No. (byte) Specify the network module station No. of an access target
-	//* (UINT16 LE) Request destination module I/O No 
-	//* (Byte) Request destination module station No. 
+	//* (UINT16 LE) Request destination module I/O No
+	//* (Byte) Request destination module station No.
 	// Response data length
 	// 2bytes
 	// End code
@@ -2066,7 +2067,7 @@ function decodeResponseHeader(mcp, theData){
 				throw new Error("Timeout error - zero length packet");
 			}
 		}
-		
+
 		if (frame == '1E') {
 			reply.expectedResponse = theData[0];//set the expected to same as received. As this is a 1E frame, we dont know expected response at this time.  This will be checked later.
 			//0x80=128 PG401 Batch read in bit units (command: 00) OK response
@@ -2095,12 +2096,12 @@ function decodeResponseHeader(mcp, theData){
 
 		if (frame == '4E') {
 			reply.expectedResponse = 0x00D4;
-			reply.response = theData.readUInt16LE(0); 
-			reply.seqNum = theData.readUInt16LE(2); 
+			reply.response = theData.readUInt16LE(0);
+			reply.seqNum = theData.readUInt16LE(2);
 			let xxx = theData.readUInt16LE(4); //dummy
 			reply.accessRouteNetworkNo = theData[6];
 			reply.accessPCNo = theData[7];
-			reply.accessRouteModuleIONo = theData.readUInt16LE(8); 
+			reply.accessRouteModuleIONo = theData.readUInt16LE(8);
 			reply.accessRouteModuleStationNo = theData[10];
 			reply.length = theData.readUInt16LE(11);//length Noof bytes from start of "end code" ~ end of "Response data"
 			reply.endCode = theData.readUInt16LE(13);
@@ -2111,17 +2112,17 @@ function decodeResponseHeader(mcp, theData){
 		}
 		if (reply.response !== reply.expectedResponse) {
 			reply.lastError = 'Invalid MC - Expected first part to be ' + decimalToHexString(reply.expectedResponse) + ' - got ' + decimalToHexString(reply.response) + " (" + reply.response + ")";
-			return reply; 
+			return reply;
 		}
-	
+
 		if (reply.endCode !== 0) {
 			reply.endDetail = theData.slice(reply.dataStart);//all response data is error info when endcode is not 0
 			reply.lastError = `Reply End code '${reply.endCode} is not zero. For extra info, see "endDetail" `;
-			return reply; 
+			return reply;
 		}
 	} catch (error) {
 		reply.lastError = `Exception - ${error}`;
-		return reply; 
+		return reply;
 	}
 	reply.valid = true;
 	return reply;
@@ -2129,7 +2130,7 @@ function decodeResponseHeader(mcp, theData){
 
 
 function processMBWriteItem(decodedHeader, theItem, thePointer, frame) {
-	// Create a new buffer for the quality.  
+	// Create a new buffer for the quality.
 	// theItem.writeQualityBuffer = new Buffer(theItem.byteLength);
 	theItem.writeQualityBuffer.fill(MCProtocol.prototype.enumOPCQuality.unknown.value);
 	//reset some flags...#
@@ -2141,19 +2142,19 @@ function processMBWriteItem(decodedHeader, theItem, thePointer, frame) {
 		theItem.endCode = -1; //TODO: Determine a suitable endCode (or none!)
 		theItem.lastError = "Response Header is not valid / empty (should not happen)";
 		theItem.writeQualityBuffer.fill(MCProtocol.prototype.enumOPCQuality.bad.value);
-		outputLog(theItem.lastError, "WARN");   
-		return 0;   			      
+		outputLog(theItem.lastError, "WARN");
+		return 0;
 	}
 
 	if(!decodedHeader.valid){
 		theItem.valid = false;
 		theItem.lastError = decodedHeader.lastError || "Response Header is not valid";
-		theItem.endCode = decodedHeader.endCode; 
+		theItem.endCode = decodedHeader.endCode;
 		theItem.endDetail = decodedHeader.endDetail;
 		//TODO: Fill quality with more specific / appropriate value (based on endCode)
 		theItem.writeQualityBuffer.fill(MCProtocol.prototype.enumOPCQuality.bad.value);
-		outputLog(theItem.lastError, "WARN");  
-		return 0;   			      
+		outputLog(theItem.lastError, "WARN");
+		return 0;
 	}
 
 	//success
@@ -2184,14 +2185,14 @@ function writePostProcess(theItem) {
 			theItem.writeQuality[arrayIndex] = qualItem.desc;
 
 			if (theItem.datatype == 'BIT') {
-				// For bit arrays, we have to do some tricky math to get the pointer to equal the byte offset. 
-				// Note that we add the bit offset here for the rare case of an array starting at other than zero.  We either have to 
-				// drop support for this at the request level or support it here.  
+				// For bit arrays, we have to do some tricky math to get the pointer to equal the byte offset.
+				// Note that we add the bit offset here for the rare case of an array starting at other than zero.  We either have to
+				// drop support for this at the request level or support it here.
 				if ((((arrayIndex + theItem.bitOffset + 1) % 8) == 0) || (arrayIndex == theItem.arrayLength - 1)) {
 					thePointer += theItem.dtypelen;
 				}
 			} else {
-				// Add to the pointer every time.  
+				// Add to the pointer every time.
 				thePointer += theItem.dtypelen;
 			}
 		}
@@ -2205,7 +2206,7 @@ function processMCReadItem(theItem, isAscii, frame) {
 	theItem.recvTime = Date.now();
 	let quals = MCProtocol.prototype.enumOPCQuality;
 	if (theItem.arrayLength > 1) {
-		// Array value.  
+		// Array value.
 		if (theItem.datatype != 'C' && theItem.datatype != 'CHAR') {
 			theItem.value = [];
 			theItem.quality = [];
@@ -2218,7 +2219,7 @@ function processMCReadItem(theItem, isAscii, frame) {
 			bitShiftAmount = theItem.remainder;
 		}
 		var stringNullFound = false;
-		
+
 		for (arrayIndex = 0; arrayIndex < theItem.arrayLength; arrayIndex++) {
 
 			let qual = theItem.qualityBuffer[thePointer];
@@ -2314,7 +2315,7 @@ function processMCReadItem(theItem, isAscii, frame) {
 
 					case "C":
 					case "CHAR":
-						// Convert to string.  
+						// Convert to string.
 						if (isAscii) {
 							if (arrayIndex % 2) {
 								theItem.value += String.fromCharCode(theItem.byteBuffer.readUInt8(thePointer - 1));
@@ -2336,9 +2337,9 @@ function processMCReadItem(theItem, isAscii, frame) {
 				}
 			}
 			if (theItem.datatype == 'BIT') {
-				// For bit arrays, we have to do some tricky math to get the pointer to equal the byte offset. 
-				// Note that we add the bit offset here for the rare case of an array starting at other than zero.  We either have to 
-				// drop support for this at the request level or support it here.  
+				// For bit arrays, we have to do some tricky math to get the pointer to equal the byte offset.
+				// Note that we add the bit offset here for the rare case of an array starting at other than zero.  We either have to
+				// drop support for this at the request level or support it here.
 				bitShiftAmount++;
 				if (theItem.bitNative) {
 					if ((((arrayIndex + theItem.remainder + 1) % 16) == 0) || (arrayIndex == theItem.arrayLength - 1)) { // NOTE: The second or case is for the case of the end of an array where we increment for next read - not important for MC protocol
@@ -2348,17 +2349,17 @@ function processMCReadItem(theItem, isAscii, frame) {
 				} else {
 					// Never tested
 					if ((((arrayIndex + theItem.bitOffset + 1) % 16) == 0) || (arrayIndex == theItem.arrayLength - 1)) {
-						thePointer += theItem.dtypelen; // I guess this is 1 for bits.  
+						thePointer += theItem.dtypelen; // I guess this is 1 for bits.
 						bitShiftAmount = 0;
 					}
 				}
 			} else {
-				// Add to the pointer every time.  
+				// Add to the pointer every time.
 				thePointer += theItem.dtypelen;
 			}
 		}
 	} else {
-		// Single value.  
+		// Single value.
 		let qual = theItem.qualityBuffer[thePointer];
 		let qualItem = quals[qual];
 		if (!qualItem)
@@ -2425,7 +2426,7 @@ function processMCReadItem(theItem, isAscii, frame) {
 					break;
 				case "B":
 				case "BYTE":
-					// No support as of yet for signed 8 bit.  This isn't that common.  
+					// No support as of yet for signed 8 bit.  This isn't that common.
 					if (isAscii) {
 						theItem.value = theItem.byteBuffer.readUInt8(thePointer + 1);
 					} else {
@@ -2434,7 +2435,7 @@ function processMCReadItem(theItem, isAscii, frame) {
 					break;
 				case "C":
 				case "CHAR":
-					// No support as of yet for signed 8 bit.  This isn't that common.  
+					// No support as of yet for signed 8 bit.  This isn't that common.
 					if (isAscii) {
 						theItem.value = String.fromCharCode(theItem.byteBuffer.readUInt8(thePointer + 1));
 					} else {
@@ -2453,7 +2454,7 @@ function processMCReadItem(theItem, isAscii, frame) {
 		thePointer += theItem.dtypelen;
 	}
 
-	if (((thePointer) % 2)) { // Odd number.  
+	if (((thePointer) % 2)) { // Odd number.
 		thePointer += 1;
 	}
 
@@ -2580,54 +2581,54 @@ MCProtocol.prototype.enumMaxWordLength = _enum({
 	batchReadWordUnits04010000: { //Batch read in word units (command: 0401) PG86
 		description: "Batch read in word units",
 		command: 0x0401, subCommand: 0x0000,
-		"BITDevice": {A:64, QnA:480, Q:960, L:960 /*, R:960 does iQR support subCommand 0x0? */}, 
-		"WORDDevice": {A:32, QnA:480, Q:960, L:960/*, R:960 does iQR support subCommand 0x0? */}, 
+		"BITDevice": {A:64, QnA:480, Q:960, L:960 /*, R:960 does iQR support subCommand 0x0? */},
+		"WORDDevice": {A:32, QnA:480, Q:960, L:960/*, R:960 does iQR support subCommand 0x0? */},
 	},
 	batchReadWordUnits04010002: { //Batch read in word units (command: 0401) PG86
 		description: "Batch read in word units",
 		command: 0x0401, subCommand: 0x0002,
-		"BITDevice": {R:960}, 
-		"WORDDevice": {R:960}, 
+		"BITDevice": {R:960},
+		"WORDDevice": {R:960},
 	},
 	batchReadBitUnits04010001: { //Batch read in bit units (command: 0401) PG90
 		description: "Batch read in word units",
 		command: 0x0401, subCommand: 0x0001,
-		"BITDevice": {A:64, QnA:896, Q:1792, L:1792 /*, R:1792 does iQR support subCommand 0x1? */}, 
-		"WORDDevice": {A:64, QnA:896, Q:1792, L:1792/*, R:1792 does iQR support subCommand 0x1? */}, 
+		"BITDevice": {A:64, QnA:896, Q:1792, L:1792 /*, R:1792 does iQR support subCommand 0x1? */},
+		"WORDDevice": {A:64, QnA:896, Q:1792, L:1792/*, R:1792 does iQR support subCommand 0x1? */},
 	},
 	batchReadBitUnits04010003: { //Batch read in bit units (command: 0401) PG90
 		description: "Batch read in word units",
 		command: 0x0401, subCommand: 0x0003,
-		"BITDevice": {R:1792}, 
-		"WORDDevice": {R:1792}, 
+		"BITDevice": {R:1792},
+		"WORDDevice": {R:1792},
 	},
 	batchWriteWordUnits14010000: { //Batch Write in word units (command: 1401) PG92
 		description: "Batch Write in word units",
 		command: 0x1401, subCommand: 0x0000,
-		"BITDevice": {A:10, QnA:480, Q:960, L:960 /*, R:960 does iQR support subCommand 0x0? */}, 
-		"WORDDevice": {A:64, QnA:480, Q:960, L:960/*, R:960 does iQR support subCommand 0x0? */}, 
-		"DWORDDevice": {Q:960, L:960/*, R:960 does iQR support subCommand 0x0? */}, 
+		"BITDevice": {A:10, QnA:480, Q:960, L:960 /*, R:960 does iQR support subCommand 0x0? */},
+		"WORDDevice": {A:64, QnA:480, Q:960, L:960/*, R:960 does iQR support subCommand 0x0? */},
+		"DWORDDevice": {Q:960, L:960/*, R:960 does iQR support subCommand 0x0? */},
 	},
 	batchWriteWordUnits14010002: { //Batch Write in word units (command: 1401) PG92
 		description: "Batch Write in word units",
 		command: 0x1401, subCommand: 0x0002,
-		"BITDevice": {R:960}, 
-		"WORDDevice": {R:960}, 
-		"DWORDDevice": {R:960}, 
+		"BITDevice": {R:960},
+		"WORDDevice": {R:960},
+		"DWORDDevice": {R:960},
 	},
 	batchWriteBitUnits14010001: { //Batch Write in Bit units (command: 1401) PG95
 		description: "Batch Write in Bit units",
 		command: 0x1401, subCommand: 0x0001,
-		"BITDevice": {A:10, QnA:896, Q:1792, L:1792 /*, R:1792 does iQR support subCommand 0x0? */}, 
-		"WORDDevice": {A:64, QnA:896, Q:1792, L:1792/*, R:1792 does iQR support subCommand 0x0? */}, 
-		"DWORDDevice": {Q:960, L:960/*, R:960 does iQR support subCommand 0x0? */}, 
+		"BITDevice": {A:10, QnA:896, Q:1792, L:1792 /*, R:1792 does iQR support subCommand 0x0? */},
+		"WORDDevice": {A:64, QnA:896, Q:1792, L:1792/*, R:1792 does iQR support subCommand 0x0? */},
+		"DWORDDevice": {Q:960, L:960/*, R:960 does iQR support subCommand 0x0? */},
 	},
 	batchWriteBitUnits14010003: { //Batch Write in Bit units (command: 1401) PG95
 		description: "Batch Write in Bit units",
 		command: 0x1401, subCommand: 0x0003,
-		"BITDevice": {R:1792}, 
-		"WORDDevice": {R:1792}, 
-		"DWORDDevice": {R:1792}, 
+		"BITDevice": {R:1792},
+		"WORDDevice": {R:1792},
+		"DWORDDevice": {R:1792},
 	},
 
 });
@@ -2656,7 +2657,7 @@ MCProtocol.prototype.enumOPCQuality = _enum({
 	uncertainSensorNotAccurate: { name: 'uncertainSensorNotAccurate', desc: 'Uncertain - Sensor not Accurate - outside of limits', value: 0x50 }, //(80)Uncertain - Sensor not Accurate - outside of limits
 	uncertainEngUnitsExceeded: { name: 'uncertainEngUnitsExceeded', desc: 'Uncertain - Engineering Units exceeded', value: 0x54 }, //(84)Uncertain - Engineering Units exceeded
 	uncertainMultipleSources: { name: 'uncertainMultipleSources', desc: 'Uncertain - Value from multiple sources - with less then required good values', value: 0x58 }, //(88)Uncertain - Value from multiple sources - with less then required good values
-	unknown: { name: 'unknown', desc: 'Unknown', value: 0xff }, //(255)Unknown	
+	unknown: { name: 'unknown', desc: 'Unknown', value: 0xff }, //(255)Unknown
 });
 
 //https://dl.mitsubishielectric.com/dl/fa/document/manual/plc/sh080008/sh080008x.pdf PG 68
@@ -2690,7 +2691,7 @@ MCProtocol.prototype.enumDeviceCodeSpecQ = _enum({
 	Z: {symbol: 'Z', type: 'WORD', notation: 'Decimal', binary: 0xCC, ascii: 'Z*', description: 'Index register'},
 	R: {symbol: 'R', type: 'WORD', notation: 'Decimal', binary: 0xAF, ascii: 'R*', description: 'File register'},
 	//D: {symbol: 'D', type: 'WORD', notation: 'Decimal', binary: 0xA8, ascii: 'D*', description: 'Extended data register*4'},
-	//W: {symbol: 'W', type: 'WORD', notation: 'Hexadecimal', binary: 0xB4, ascii: 'W*', description: 'Extended link register*4'},	
+	//W: {symbol: 'W', type: 'WORD', notation: 'Hexadecimal', binary: 0xB4, ascii: 'W*', description: 'Extended link register*4'},
 });
 MCProtocol.prototype.enumDeviceCodeSpecR = _enum({
 	SM: {symbol: 'SM', type: 'BIT', notation: 'Decimal', binary: 0x0091, ascii: 'SM**', description: 'Special relay'},
@@ -2718,7 +2719,7 @@ MCProtocol.prototype.enumDeviceCodeSpecR = _enum({
 	DX: {symbol: 'DX', type: 'BIT', notation: 'Hexadecimal', binary: 0x00A2, ascii: 'DX**', description: 'Direct access input'},
 	DY: {symbol: 'DY', type: 'BIT', notation: 'Hexadecimal', binary: 0x00A3, ascii: 'DY**', description: 'Direct access output'},
 	LZ: {symbol: 'LZ', type: 'DWORD', notation: 'Decimal', binary: 0x0062, ascii: 'LZ**', description: 'Long index register'},
-	ZR: {symbol: 'ZR', type: 'WORD', notation: 'Hexadecimal', binary: 0x00B0, ascii: 'ZR**', description: 'File register'},	
+	ZR: {symbol: 'ZR', type: 'WORD', notation: 'Hexadecimal', binary: 0x00B0, ascii: 'ZR**', description: 'File register'},
 	Z: {symbol: 'Z', type: 'WORD', notation: 'Decimal', binary: 0x00CC, ascii: 'Z***', description: 'Index register'},
 	R: {symbol: 'R', type: 'WORD', notation: 'Decimal', binary: 0x00AF, ascii: 'R***', description: 'File register'},
 	X: {symbol: 'X', type: 'BIT', notation: 'Hexadecimal', binary: 0x009C, ascii: 'X***', description: 'Input'},
@@ -2750,7 +2751,7 @@ MCProtocol.prototype.enumDeviceCodeSpec1E = _enum({
 	W: {symbol: 'W', type: 'WORD', notation: 'Hexadecimal', binary: 0x5720, ascii: 'W ', description: 'Link register'},
 	R: {symbol: 'R', type: 'WORD', notation: 'Decimal', binary: 0x5220, ascii: 'R ', description: 'File register'},
 	});
-	
+
 MCProtocol.prototype.enumDeviceCodeSpecL = MCProtocol.prototype.enumDeviceCodeSpecQ;
 //MCProtocol.prototype.enumDeviceCodeSpec = MCProtocol.prototype.enumDeviceCodeSpecQ;//default to Q/L series
 
@@ -2787,17 +2788,17 @@ function decimalToHexString(number) {
 }
 
 function PLCPacket() {
-	this.seqNum = undefined;				// Made-up sequence number to watch for.  
-	this.itemList = undefined;  			// This will be assigned the object that details what was in the request.  
+	this.seqNum = undefined;				// Made-up sequence number to watch for.
+	this.itemList = undefined;  			// This will be assigned the object that details what was in the request.
 	this.reqTime = undefined;
 	this.sent = false;						// Have we sent the packet yet?
 	this.rcvd = false;						// Are we waiting on a reply?
-	this.timeoutError = undefined;			// The packet is marked with error on timeout so we don't then later switch to good data. 
+	this.timeoutError = undefined;			// The packet is marked with error on timeout so we don't then later switch to good data.
 	this.timeout = undefined;				// The timeout for use with clearTimeout()
-	this.isWritePacket = false; 
-	this.isReadPacket = false;		
+	this.isWritePacket = false;
+	this.isReadPacket = false;
 	this.command = undefined;
-	this.subCommand = undefined;		 
+	this.subCommand = undefined;
 	this.subHeader = undefined;
 }
 
@@ -2848,7 +2849,7 @@ function PLCItem(owner) { // Object
 
 
 	this.maxWordLength1E = function (subHeader) {
-		/* PG 468 */		
+		/* PG 468 */
 		var plcType = this.plcType;
 		switch (subHeader) {
 			case 0x00:	// Batch read Bit units 256 points (4 bits per WD... 256/4=64 WDs)
@@ -2886,14 +2887,14 @@ function PLCItem(owner) { // Object
 		A series 			1 to 64 points 			1 to 32 words (1 to 512 points)
 		QnA						1 to 480 points			1 to 480 words (1 to 7680 points)
 		Q/L/iQR				1 to 960 points 		1 to 960 words (1 to 15360 points) 		1 to 960 words (LCN: 1 to 480 points) (LTN, LSTN: 1 to 240 points)
-		*/	
-		
+		*/
+
 		if(this.frame == "1E"){
 			var subHeader = this.subHeader;
 			return this.maxWordLength1E(subHeader);
 		} else {
 			try {
-				var maxWordLengthSpec;	
+				var maxWordLengthSpec;
 				var command = this.command;
 				var subCommand = this.subCommand;
 				var filteredKey = MCProtocol.prototype.enumMaxWordLength.keys.filter(function (key) {
@@ -2944,23 +2945,23 @@ function PLCItem(owner) { // Object
 	this.readTransportCode = undefined;
 	this.writeTransportCode = undefined;
 
-	// // This is where the data can go that arrives in the packet, before calculating the value.  
+	// // This is where the data can go that arrives in the packet, before calculating the value.
 	// this.byteBuffer = undefined;//new Buffer(8192); //now initialised to correct size - when needed
 	// this.writeBuffer = undefined;//new Buffer(8192); //now initialised to correct size - when needed
 
-	// // We use the "quality buffer" to keep track of whether or not the requests were successful.  
-	// // Otherwise, it is too easy to lose track of arrays that may only be partially complete.  
+	// // We use the "quality buffer" to keep track of whether or not the requests were successful.
+	// // Otherwise, it is too easy to lose track of arrays that may only be partially complete.
 	// this.qualityBuffer = undefined;//new Buffer(8192); //now initialised to correct size - when needed
 	// this.writeQualityBuffer = undefined;//new Buffer(8192); //now initialised to correct size - when needed
 
-	// This is where the data can go that arrives in the packet, before calculating the value.  
-	this.byteBuffer = Buffer.alloc(8192); 
-	this.writeBuffer = Buffer.alloc(8192); 
+	// This is where the data can go that arrives in the packet, before calculating the value.
+	this.byteBuffer = Buffer.alloc(8192);
+	this.writeBuffer = Buffer.alloc(8192);
 
-	// We use the "quality buffer" to keep track of whether or not the requests were successful.  
-	// Otherwise, it is too easy to lose track of arrays that may only be partially complete.  
-	this.qualityBuffer = Buffer.alloc(8192); 
-	this.writeQualityBuffer = Buffer.alloc(8192); 
+	// We use the "quality buffer" to keep track of whether or not the requests were successful.
+	// Otherwise, it is too easy to lose track of arrays that may only be partially complete.
+	this.qualityBuffer = Buffer.alloc(8192);
+	this.writeQualityBuffer = Buffer.alloc(8192);
 
 
 	// Then we have item properties
@@ -3002,21 +3003,21 @@ function PLCItem(owner) { // Object
 
 	this.getDeviceCodeSpec = function(){
 		var theItem = this;
-		
+
 		if(theItem.owner && theItem.owner.enumDeviceCodeSpec){
 			return theItem.owner.enumDeviceCodeSpec;
 		}
-		
+
 		if(theItem.enumDeviceCodeSpec){
 			return theItem.enumDeviceCodeSpec;
 		}
 
 		if (typeof (theItem.plcType) === 'undefined') {
 			theItem.enumDeviceCodeSpec = MCProtocol.prototype.enumDeviceCodeSpecQ;//default to Q/L series
-		} else {			
+		} else {
 			theItem.enumDeviceCodeSpec = MCProtocol.prototype['enumDeviceCodeSpec' + self.plcType];
 		}
-		
+
 		if (typeof (theItem.frame) === 'undefined') {
 			//
 		} else if(theItem.frame.toUpperCase() == '1E'){
@@ -3044,7 +3045,7 @@ function PLCItem(owner) { // Object
 
 
 		if (TAG === '_COMMERR') {
-			// Special-case for communication error status - this variable returns true when there is a communications error 
+			// Special-case for communication error status - this variable returns true when there is a communications error
 			theItem.initError = "_COMMERR";
 			return false;
 		}
@@ -3054,7 +3055,7 @@ function PLCItem(owner) { // Object
 			//outputLog("Error - addr is empty.");
 			return false;
 		}
-		//breakdown the address format [DS] DEV [DT] DA [.BIT] [,CNT] ...  
+		//breakdown the address format [DS] DEV [DT] DA [.BIT] [,CNT] ...
 		/*
 		[1] DS	- digit specifier (e.g. K4)    					[optional]
 		[2] DEV - Device (Y|X|D|F|W|B|R|etc)
@@ -3077,7 +3078,7 @@ function PLCItem(owner) { // Object
 			else
 				strRegex = `(${allowedDigitSpecs})?(${allowedDeviceTypes})(${allowedDataTypes})?(\\w+)(?:\\.?)?(.?)?(?:,)?(\\w+)?(?::)?({.*})?`;
 				//(K2|K4|K8)?(SM|SD|TS|TC|TN|STS|STC|STN|CS|CC|CN|SB|SW|DX|DY|ZR|X|Y|M|L|F|V|B|D|W|Z|R)(REAL|FLOAT|DWORD|DINT|WORD|UINT|INT|STR|CHAR|BYTE|BIT)?(\w+)(?:\.?)?(.?)?(?:,)?(\w+)?(?::)?({.*})?
-			
+
 			outputLog(`Matching address '${addr}' to regex '${strRegex}'.`, "DEBUG");
 
 			var matches = addr.match(strRegex);
@@ -3091,7 +3092,7 @@ function PLCItem(owner) { // Object
 			if(AltAddressStyle)
 				spec = {
 					dataType: matches[1] ? matches[1] : "", //e.g. K4 | DWORD | STR etc
-					deviceCode: matches[2], //e.g. Y | X | D | M 
+					deviceCode: matches[2], //e.g. Y | X | D | M
 					deviceNo: matches[3], //e.g. 1000 | FF1 | E1A etc
 					bitNo: (!matches[4] || matches[4] == ",") ? "" : matches[4], //0 ~ F
 					deviceCount: matches[5] ? matches[5] : 1,
@@ -3099,7 +3100,7 @@ function PLCItem(owner) { // Object
 			else
 				spec = {
 					digitSpec: matches[1] ? matches[1] : "", //e.g. K4
-					deviceCode: matches[2], //e.g. Y | X | D | M 
+					deviceCode: matches[2], //e.g. Y | X | D | M
 					dataType: matches[3] ? matches[3] : "", //e.g. DWORD | STR etc
 					deviceNo: matches[4], //e.g. 1000 | FF1 | E1A etc
 					bitNo: (!matches[5] || matches[5] == ",") ? "" : matches[5], //0 ~ F
@@ -3133,7 +3134,7 @@ function PLCItem(owner) { // Object
 					break;
 				default:
 					throw new Error(`Device notation '${theItem.deviceCodeSpec.notation}' is not supported.`);
-			} 
+			}
 
 
 			if(!isNumeric(devNo)){
@@ -3144,7 +3145,7 @@ function PLCItem(owner) { // Object
 				throw new Error(`Device Number '${spec.deviceNo}' is NG.`);
 			}
 
-			//determine BIT  
+			//determine BIT
 			if (spec.bitNo != "") {
 				postDotNumeric = parseInt("0x" + spec.bitNo);
 			}
@@ -3340,32 +3341,32 @@ function PLCItem(owner) { // Object
 			subCommand: undefined
 		}
 		/*
-	
+
 		The MC Buffer for 'D1234,55' is:
-						0                             1  
-						0  1  2  3  4  5  6  7  8  9  0  1   
+						0                             1
+						0  1  2  3  4  5  6  7  8  9  0  1
 		<Buffer 01 ff 0a 00 d2 04 00 00 20 44 37 00>
-		
+
 		1E frame... Subheader, PC No., ACPU monitoring timer, Request data
-	
-		0 - Sub header :  01 = read 
+
+		0 - Sub header :  01 = read
 		1 - PC number  :  ff = default or Specify the network module station No.01H to 40H (1 to 64) of the target.
 		2 - ACPU mon timer:  0a 00 = 10 Waiting time (unit: 250 ms) ~ 10x250=2.5s (UINT16 - Little Endian (BA))
-		4 - Device Number :  d2 04 00 00  = 1234   (UINT32 - Little Endian (DCBA)) 
+		4 - Device Number :  d2 04 00 00  = 1234   (UINT32 - Little Endian (DCBA))
 		8 - Device Area   :  20 44        = 4420 == D area (UINT16 - Little Endian (BA))
 		10- Device Count  : 37 00        = 55     == device count (UINT16 - Little Endian (BA))
-	
+
 		*/
-		
-		writeLength = writeOperation ? (self.byteLengthWrite) : 0; 
+
+		writeLength = writeOperation ? (self.byteLengthWrite) : 0;
 
 		if (frame === '1E') {
-	
+
 			headerLength = 4;
-	
+
 			MCCommand[0] = self.subHeader ;
 			MCCommand[1] = 0xff;
-	
+
 			if (isAscii) {
 				outputLog("We're Ascii", "DEBUG");
 				MCCommand.writeUInt16BE(monitoringTime, 2);
@@ -3373,14 +3374,14 @@ function PLCItem(owner) { // Object
 				outputLog("We're Binary", "DEBUG");
 				MCCommand.writeUInt16LE(monitoringTime, 2);
 			}
-	
+
 			// Write the data type code
 			if (isAscii) {
 				MCCommand.writeUInt16BE(self.areaMCCode, 4);
 			} else {
 				MCCommand.writeUInt16LE(self.areaMCCode, 8);
 			}
-	
+
 			// Write the data request offset
 			if (isAscii) {
 				if (writeOperation) {
@@ -3396,7 +3397,7 @@ function PLCItem(owner) { // Object
 					MCCommand.writeUInt32LE(self.requestOffset, 4);
 				}
 			}
-	
+
 			// Number of elements in request - for single-bit, 16-bit, 32-bit, this is always the number of WORDS
 			if (self.bitNative && writeOperation) {
 				// set to bit length
@@ -3411,18 +3412,18 @@ function PLCItem(owner) { // Object
 					MCCommand.writeUInt8(self.byteLength / 2, 10);
 				}
 			}
-	
+
 			// Spec says to write 0 here
 			MCCommand.writeUInt8(0, 11);
-	
+
 			if (writeOperation) {
 				//self.prepareWriteData();
 				self.writeBuffer.copy(MCCommand, 12, 0, self.byteLengthWrite);
 				reqDataLen += writeLength;
 			}
-	
+
 			//return 1E frame
-			result.data = MCCommand.slice(0, 12 + writeLength); 
+			result.data = MCCommand.slice(0, 12 + writeLength);
 			self.buffer = result;
 			self.bufferized = true;
 			outputLog(`MCAddrToBuffer generated the below data for ${self.addr} (frame ${frame}, plcType ${plcType})...`, "TRACE");
@@ -3433,99 +3434,99 @@ function PLCItem(owner) { // Object
 			return result;
 		} else {
 			//frame 3E / 4E
-	
+
 			if (isAscii) {
 				throw new Error("ASCII Mode not implimented for 3E/4E frames");
 			}
-	
+
 			/*
 			4E/3E frame... Subheader, Access route, Request data length, Monitoring timer, Request data
 			Subheader The value to be set according to type of message is defined.
 				4E frame: Set a serial No.
 				3E frame: Fixed value (Request message '5000', Response message 'D000')
 				Page 42 Subheader
-			Access route 
-				Specify the access route. 
+			Access route
+				Specify the access route.
 				Page 45 ACCESS ROUTE SETTINGS
 			Request data length  (UINT16 LE)
-				Specify the data length from the monitoring timer --> request data. 
+				Specify the data length from the monitoring timer --> request data.
 				Page 43 Request data length and response data length
 			Monitoring timer  (UINT16 LE 0 or 1~40 = 1=250ms, 40=10s )
-				Set the wait time up to the completion of reading and writing processing. 
+				Set the wait time up to the completion of reading and writing processing.
 				Page 43 Monitoring timer
-			Request data 
+			Request data
 				COMMAND + SUBCOMMAND + DEVICE
-				For the request data, set the command that indicates the request content. 
+				For the request data, set the command that indicates the request content.
 				Refer to "Request data" rows of each command.
 				Page 60 COMMANDS AND FUNCTIONS
 				* Batch Read Words:  04 01 (00 00 | 02 00)  (Q/L = 00 00, iQR = 02 00)
 				* Batch Read Bits:   04 01 (00 01 | 03 00)  (Q/L = 00 00, iQR = 02 00)
 				* Batch Write Words: 14 01 (00 00 | 02 00)  (Q/L = 00 00, iQR = 02 00)
 				* Batch Write Bits:  14 01 (00 01 | 03 00)  (Q/L = 00 00, iQR = 02 00)
-		
-		
+
+
 				3E Q/L example
 				0                             1                             2                             3
 				0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5  6  7  8  9  0
 				50 00 00 ff ff 03 00 0a 00 10 00 01 04 00 00 d2 04 00 A8 37 00
-		
+
 				4E Q/L example
 				0                             1                             2                             3
 				0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5  6  7  8  9  0
 				54 00 02 00 00 00 00 ff ff 03 00 0a 00 10 00 01 04 00 00 d2 04 00 A8 37 00
-				
-				Subheader 4E 0x0054 + serial number + 0x0000 (6b) 1234H (5400 = 4E frame, 0200=2h, 0000 fixed) 
-				0: 54 00 34 12 00 00  
-		
-				Subheader 3E 5000  fixed 
+
+				Subheader 4E 0x0054 + serial number + 0x0000 (6b) 1234H (5400 = 4E frame, 0200=2h, 0000 fixed)
+				0: 54 00 34 12 00 00
+
+				Subheader 3E 5000  fixed
 				0: 50 00
-		
-				access route (5b)- connect to local example net0, pcno ff, 
+
+				access route (5b)- connect to local example net0, pcno ff,
 				4E:6: 00 ff ff 03 00
 				3E:2: 00 ff ff 03 00
 				* (Byte) Network No ,  Specify the network No. of an access target.
 				* (Byte) PC No. (byte) Specify the network module station No. of an access target
-				* (UINT16 LE) Request destination module I/O No 
+				* (UINT16 LE) Request destination module I/O No
 					0000H to 01FFH: Values obtained by dividing the start input/output number by 16
-				* (Byte) Request destination module station No. 
+				* (Byte) Request destination module station No.
 					When accessing a multidrop connection station, specify the station No. of an access target module
 					00H to 1FH (0 to 31): Station No
 					ex. Accessing the connected station (host station) FFH 03H 00H
-					
+
 				Req Data length (2b) (UINT16 LE) =  noof bytes from Monitoring timer --> Request data
 				4E:11: 0a 00     (10 bytes)
 				3E:07: 0a 00     (10 bytes)
-		
+
 				Monitoring timer (2b) (0= wait forever, 01H=250ms ~ 28H=40x250=10s )
-				13: 10 00  	
-		
+				13: 10 00
+
 				Request data (10b Q/L,  12b iQR)
 				15: 01 04 00 00 d2 04 00 00 20 44 37 00
-		
+
 					Command (4b)
-					15: 01 04 00 00 
+					15: 01 04 00 00
 							01 04 = 0401=read
 							00 00 = subcommand 0 (Q/L series)
-					
+
 					Device (6b Q/L,  8b iQR)
 					19: d2 04 00 A8 37 00
 					Q/L (6 bytes)
-					(UINT16 LE) - Device Number :  d2 04   = 1234   
-					(BYTE)      - Device Number 
-					(UINT8)     - Device code   :  A8      = 0xa8 == D area  
-					(UINT16 LE) - Device Count  :  37 00   = 55  
+					(UINT16 LE) - Device Number :  d2 04   = 1234
+					(BYTE)      - Device Number
+					(UINT8)     - Device code   :  A8      = 0xa8 == D area
+					(UINT16 LE) - Device Count  :  37 00   = 55
 					iQ-R (8 bytes)
-					(UINT32 LE) - Device Number :  d2 04 00 00  = 1234    
-					(UINT16 LE) - Device code   :  A8 00        = 0xA8 == D area  
-					(UINT16 LE) - Device Count  :  37 00        = 55  
-		
+					(UINT32 LE) - Device Number :  d2 04 00 00  = 1234
+					(UINT16 LE) - Device code   :  A8 00        = 0xA8 == D area
+					(UINT16 LE) - Device Count  :  37 00        = 55
+
 				*/
-	
-	
-			//Subheader: serial number (4E) or fixed (3E) 
-			//example 1234H (5400 = 4E frame, 3412=1234h, 0000 fixed) 
+
+
+			//Subheader: serial number (4E) or fixed (3E)
+			//example 1234H (5400 = 4E frame, 3412=1234h, 0000 fixed)
 			// 0  1  2  3  4  5
-			// 54 00 34 12 00 00 
+			// 54 00 34 12 00 00
 			if (frame === '4E') {
 				MCCommand.addByte(0x54); // 4E frame
 				MCCommand.addByte(0x00); // 4E frame
@@ -3537,16 +3538,16 @@ function PLCItem(owner) { // Object
 				MCCommand.addByte(0x00); // 3E frame
 				pos = 2;
 			}
-	
-			//access route - connect to local example net0, pcno ff, 
+
+			//access route - connect to local example net0, pcno ff,
 			// 00 ff ff 03 00
 			/*
 			* (Byte) Network No ,  Specify the network No. of an access target.
 			* (Byte) PC No. (byte) Specify the network module station No. of an access target
-			* (UINT16 LE) Request destination module I/O No 
+			* (UINT16 LE) Request destination module I/O No
 				0000H to 01FFH: Values obtained by dividing the start input/output number by 16
 				0x03FF = CPU
-			* (Byte) Request destination module station No. 
+			* (Byte) Request destination module station No.
 			*/
 			let networkNo = network ? network : (this.options.N || 0);
 			let stationNo = PCStation ? PCStation : (this.options.S || 0xff);
@@ -3556,39 +3557,39 @@ function PLCItem(owner) { // Object
 			MCCommand.addUint16LE(PLCModuleNo ? PLCModuleNo : 0x3FF); //03ff // Request destination module I/O No //for multidrop/routing
 			MCCommand.addByte(PLCStation ? PLCStation : 0); //0x0 // Request destination module station No //for multidrop/routing
 			pos += 5;
-	
+
 			//Request data length  (UINT16 LE)
 			var reqDataLenPos = MCCommand.pointer;
 			var reqDataLen = 0;
 			//Update Data Length after its understood below - for now, set length as zero
 			MCCommand.addUint16LE(0);
 			pos += 2;
-	
+
 			//Monitoring timer  (0= wait forever, 01H=250ms ~ 28H=40x250=10s )
 			MCCommand.addUint16LE(monitoringTime);
 			pos += 2;
 			reqDataLen += 2;
-	
+
 			// //Request data...
 			// * Command
 			MCCommand.addUint16LE(self.command);
 			MCCommand.addUint16LE(self.subCommand);
-	
-	
+
+
 			pos += 4;
 			reqDataLen += 4;
 			// * Device
 			/*
 				Q/L
-				(UINT16 LE) - Device Number :  d2 04   = 1234   
-				(BYTE)      - Device Number 
-				(UINT8)     - Device code   :  A8      = 0xa8 == D area  
-				(UINT16 LE) - Device Count  :  37 00   = 55  
+				(UINT16 LE) - Device Number :  d2 04   = 1234
+				(BYTE)      - Device Number
+				(UINT8)     - Device code   :  A8      = 0xa8 == D area
+				(UINT16 LE) - Device Count  :  37 00   = 55
 				iQ-R
-				(UINT32 LE) - Device Number :  d2 04 00 00  = 1234    
-				(UINT16 LE) - Device code   :  A8 00        = 0xA8 == D area  
-				(UINT16 LE) - Device Count  :  37 00        = 55  
-	
+				(UINT32 LE) - Device Number :  d2 04 00 00  = 1234
+				(UINT16 LE) - Device code   :  A8 00        = 0xA8 == D area
+				(UINT16 LE) - Device Count  :  37 00        = 55
+
 			*/
 			// Device Number
 			var offset = writeOperation ? self.offset : self.requestOffset;
@@ -3598,14 +3599,14 @@ function PLCItem(owner) { // Object
 			pos += 3;
 			reqDataLen += 3;
 
-	
+
 			if (plcType == 'R') {
 				MCCommand.addByte((offset >> 24) & 0xff);
 				pos += 1;
 				reqDataLen += 1;
 				}
 
-				
+
 			// Device Code
 			if (plcType == 'R') {
 				MCCommand.addUint16LE(self.areaMCCode);
@@ -3616,10 +3617,10 @@ function PLCItem(owner) { // Object
 				reqDataLen += 1;
 				pos += 1;
 			}
-	
+
 			//NOTES:
 			// 1E Number of elements in request - for single-bit, 16-bit, 32-bit, this is always the number of WORDS
-			// 3E,4E Number of elements in request - 
+			// 3E,4E Number of elements in request -
 			//    for batch bit read each bit is returned in 1 digit.
 			//    for batch word read, this is always the number of WORDS
 			if (self.bitNative && writeOperation) {
@@ -3631,25 +3632,25 @@ function PLCItem(owner) { // Object
 				if (writeOperation) {
 					MCCommand.addUint16LE(self.byteLengthWrite / 2);//noof words
 				} else {
-					MCCommand.addUint16LE(self.byteLength / 2);//noof words		
+					MCCommand.addUint16LE(self.byteLength / 2);//noof words
 				}
 			}
 			pos += 2;
 			reqDataLen += 2;
-	
-	
+
+
 			//add write data
 			if (writeOperation) {
 				//self.prepareWriteData();
 				self.writeBuffer.copy(MCCommand, pos, 0, self.byteLengthWrite);
 				reqDataLen += writeLength;
 			}
-	
+
 			//update the Request Data Length
 			MCCommand.writeInt16LE(reqDataLen, reqDataLenPos);
-	
-			//return 3E/4E frame 
-			result.data = MCCommand.slice(0, pos + writeLength);   
+
+			//return 3E/4E frame
+			result.data = MCCommand.slice(0, pos + writeLength);
 			outputLog(`MCAddrToBuffer generated the below data for ${self.addr} (frame ${frame}, plcType ${plcType})...`, "TRACE");
 			outputLog('        0                             1                             2                 ', "TRACE");
 			outputLog('        0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5  ', "TRACE");
@@ -3669,7 +3670,7 @@ function PLCItem(owner) { // Object
 		thePointer = 0; // After length and header
 
 		try {
-			
+
 			 //if(!theItem.writeBuffer || !theItem.writeQualityBuffer || !(theItem.writeBuffer.length == theItem.byteLengthWrite)){
 			 	theItem.writeBuffer.fill(0) //= new Buffer(theItem.byteLengthWrite+1);
 			 	theItem.writeQualityBuffer.fill(0) //= new Buffer(theItem.byteLengthWrite+1);
@@ -3681,7 +3682,7 @@ function PLCItem(owner) { // Object
 
 
 			if (theItem.arrayLength > 1) {
-				// Array value.  
+				// Array value.
 				var bitShiftAmount = theItem.bitOffset;
 				var stringNullFound = false;
 				for (arrayIndex = 0; arrayIndex < theItem.arrayLength; arrayIndex++) {
@@ -3728,7 +3729,7 @@ function PLCItem(owner) { // Object
 							} else {
 								theByte = theByte | (((theItem.writeValue[arrayIndex] == true) ? 1 : 0) << 4);
 							}
-							// Maybe not so efficient to do this every time when we only need to do it every 8.  Need to be careful with optimizations here for odd requests.  
+							// Maybe not so efficient to do this every time when we only need to do it every 8.  Need to be careful with optimizations here for odd requests.
 							theItem.writeBuffer.writeUInt8(theByte, thePointer);
 							//theItem.writeBuffer.writeUInt8(0, thePointer + 1);  // Zero out the pad byte
 							//bitShiftAmount++;
@@ -3747,7 +3748,7 @@ function PLCItem(owner) { // Object
 							break;
 						case "C":
 						case "CHAR":
-							// Convert to string.  
+							// Convert to string.
 							if (isAscii) {
 								//todo: stop at null
 								if (arrayIndex % 2) {
@@ -3773,14 +3774,14 @@ function PLCItem(owner) { // Object
 							theByte = 0;
 						}
 					} else {
-						// Add to the pointer every time.  
+						// Add to the pointer every time.
 						thePointer += theItem.dtypelen;
 					}
 				}
 			} else {
-				// Single value. 
+				// Single value.
 				switch (theItem.datatype) {
-	
+
 					case "REAL":
 						if (isAscii) {
 							theItem.writeBuffer.setFloatBESwap(theItem.writeValue, thePointer);
@@ -3818,7 +3819,7 @@ function PLCItem(owner) { // Object
 						break;
 					case "BIT":
 						if (theItem.bitNative) {
-							//e.g. 0x10 = Turn on first bit, turn off 2nd bit. 
+							//e.g. 0x10 = Turn on first bit, turn off 2nd bit.
 							//e.g. 0x01 0x10 = Turn on off 1st bit, turn on 2nd bit. , turn on 3rd bit. turn off 4th bit.
 							theItem.writeBuffer.writeUInt8(((theItem.writeValue) ? 0x10 : 0x00), thePointer);  // checked ===true but this caused problems if you write 1
 							theItem.writeBuffer.writeUInt8(0x00, thePointer + 1);
@@ -3829,7 +3830,7 @@ function PLCItem(owner) { // Object
 						break;
 					case "B":
 					case "BYTE":
-						// No support as of yet for signed 8 bit.  This isn't that common.  
+						// No support as of yet for signed 8 bit.  This isn't that common.
 						if (isAscii) {
 							theItem.writeBuffer.writeUInt8(Math.round(theItem.writeValue), thePointer + 1);
 							theItem.writeBuffer.writeUInt8(0, thePointer);
@@ -3839,7 +3840,7 @@ function PLCItem(owner) { // Object
 						break;
 					case "C":
 					case "CHAR":
-						// No support as of yet for signed 8 bit.  This isn't that common.  
+						// No support as of yet for signed 8 bit.  This isn't that common.
 						if (isAscii) {
 							theItem.writeBuffer.writeUInt8(String.toCharCode(theItem.writeValue), thePointer + 1);
 							theItem.writeBuffer.writeUInt8(0, thePointer);
@@ -3852,7 +3853,7 @@ function PLCItem(owner) { // Object
 				}
 				thePointer += theItem.dtypelen;
 			}
-	
+
 		} catch (error) {
 			theItem.lastError = `Exception preparing the write buffer for item '${theItem.useraddr}': ${error}`;
 			outputLog(theItem.lastError, "ERROR");
@@ -3866,11 +3867,11 @@ function PLCItem(owner) { // Object
 	this.clone = function () {
 		var newObj = new PLCItem(this.owner);
 		for (var i in this) {
-			if (i == 'clone') 
+			if (i == 'clone')
 				continue;
-			// if (i == 'qualityBuffer') 
+			// if (i == 'qualityBuffer')
 			// 	continue;
-			// if (i == 'writeQualityBuffer') 
+			// if (i == 'writeQualityBuffer')
 			// 	continue;
 			newObj[i] = this[i];
 		}
@@ -3896,7 +3897,7 @@ function itemListSorter(a, b) {
 	if (a.areaMCCode < b.areaMCCode) { return -1; }
 	if (a.areaMCCode > b.areaMCCode) { return 1; }
 
-	// But for byte offset we need to start at 0.  
+	// But for byte offset we need to start at 0.
 	if (a.offset < b.offset) { return -1; }
 	if (a.offset > b.offset) { return 1; }
 

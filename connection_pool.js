@@ -19,7 +19,7 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE. 
+SOFTWARE.
 */
 
 var util = require("util");
@@ -42,8 +42,7 @@ module.exports = {
         options.ascii = options.ascii || false;
         options.frame = options.frame || "3E";
         options.plcType = options.plcType || "Q";
-        options.autoConnect =
-          options.autoConnect == "undefined" ? true : options.autoConnect;
+        options.autoConnect = true;
         options.preventAutoReconnect = false;
         options.logLevel = options.logLevel || "WARN";
         util.log(`[mcprotocol] adding new connection to pool ~ ${id}`);
@@ -58,10 +57,10 @@ module.exports = {
             return mcp;
           },
           getAutoConnect: function() {
-            return options.autoConnect == true;
+            return options.autoConnect === true;
           },
           setAutoConnect: function(b) {
-            options.autoConnect = b == true;
+            options.autoConnect = b === true;
           },
           _instances: 0,
           write: function(addr, data, callback) {
@@ -75,12 +74,14 @@ module.exports = {
           read: function(addr, callback) {
             if (!mcp.isConnected()) {
               //this.connect();
+              util.log(`read Not connected!`);
               throw new Error("Not connected!");
             }
             var reply = mcp.readItems(addr, callback);
             return reply;
           },
           closeConnection: function() {
+            util.log(`mc closeConnection`);
             mcp.connectionReset();
             options.preventAutoReconnect = true;
           },
@@ -88,6 +89,7 @@ module.exports = {
             mcp.on(a, b);
           },
           connect: function() {
+            util.log(`mc connect`);
             options.preventAutoReconnect = false;
             if (mcp && !mcp.isConnected() && !connecting) {
               connecting = true;
@@ -96,6 +98,7 @@ module.exports = {
           },
           disconnect: function() {
             this._instances -= 1;
+            util.log(`mc disconnect, ${this._instances} instances`);
             if (this._instances <= 0) {
               util.log(`[mcprotocol] closing connection ~ ${id}`);
               mcp.dropConnection();
@@ -106,7 +109,8 @@ module.exports = {
           },
           reinitialize: function() {
             //in case of physical connection loss, it does not get the connection back
-            //when connecting again. the mcp object needs to be renewed. 
+            //when connecting again. the mcp object needs to be renewed.
+            util.log(`mc reinitialize, mcp: ${!mcp}`);
             this.disconnect();
             if (!mcp) {
               mcp = new mcprotocol();
@@ -114,10 +118,12 @@ module.exports = {
             }
             this.connect();
             this._instances += 1;
+            util.log(`mc reinitialize, _instances: ${this._instances}`);
           },
         };
 
         mcp.on("error", function(e) {
+          util.log(`mc error, mcp: ${!mcp}`);
           if (mcp) {
             util.log(`[mcprotocol] error ~ ${id}: ${e}`);
             connecting = false;
@@ -134,6 +140,7 @@ module.exports = {
           }
         });
         mcp.on("open", function() {
+          util.log(`mc open, mcp: ${!mcp}`);
           if (mcp) {
             util.log(`[mcprotocol] connected ~ ${id}`);
             connecting = false;
@@ -158,6 +165,7 @@ module.exports = {
       })();
     }
     pool[id]._instances += 1;
+    util.log(`pool[id]._instances: ${pool[id]._instances}, id: ${id}`);
     return pool[id];
   }
 };
