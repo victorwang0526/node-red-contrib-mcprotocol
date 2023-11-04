@@ -1382,6 +1382,7 @@ MCProtocol.prototype.sendReadPacket = function (arg) {
 
 		if (self.connectionState == 4) {
 			readPacket.timeout = setTimeout(function () {
+				outputLog(`packetTimeout 1`, "DEBUG");
 				self.packetTimeout.apply(self, arguments);
 			},
 				self.globalTimeout, "read", readPacket.seqNum);
@@ -1418,6 +1419,7 @@ MCProtocol.prototype.sendReadPacket = function (arg) {
 			}
 			outputLog('Requesting PacketTimeout Due to connection state != 4.  readPacket SeqNum == ' + readPacket.seqNum, 1, self.connectionID);
 			readPacket.timeout = setTimeout(function () {
+				outputLog(`packetTimeout 2`, "DEBUG");
 				self.packetTimeout.apply(self, arguments);
 			}, 0, "read", readPacket.seqNum);
 		}
@@ -1467,6 +1469,7 @@ MCProtocol.prototype.sendWritePacket = function () {
 
 		if (self.connectionState === 4) {
 			writePacket.timeout = setTimeout(function () {
+				outputLog(`packetTimeout 3`, "DEBUG");
 				self.packetTimeout.apply(self, arguments);
 			}, self.globalTimeout, "write", writePacket.seqNum);
 			outputLog("Actual Send Packet:", "DEBUG");
