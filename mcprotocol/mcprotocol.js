@@ -270,6 +270,7 @@ MCProtocol.prototype.initiateConnection = function (cParam, callback) {
 			if (itemAge > self.queueMaxAge) {
 				outputLog(`🛢️➡🗑️  Discarding queued '${queueItem.fn}' item ${queueItem.arg} (item age is ${itemAge}ms, max age is ${self.queueMaxAge}ms)`, "WARN")
 				self.queue.shift();
+				self.emit('error');
 				return;//too old - discard
 			}
 			outputLog(`🛢️➡⚙️ Sending queued '${queueItem.fn}' item ${queueItem.arg}`, "DEBUG");
