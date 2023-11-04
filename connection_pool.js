@@ -93,6 +93,7 @@ module.exports = {
             options.preventAutoReconnect = false;
             if (mcp && !mcp.isConnected() && !connecting) {
               connecting = true;
+              util.log(`mc connect connecting`);
               mcp.initiateConnection(options);
             }
           },
